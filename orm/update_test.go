@@ -59,4 +59,17 @@ var _ = Describe("Update", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(string(b)).To(Equal(`WITH "wrapper" AS (SELECT "update_test"."id", "update_test"."value" FROM "update_tests" AS "update_test") UPDATE "update_tests" AS "update_test" SET "value" = NULL FROM "wrapper" WHERE (update_test.id = wrapper.id)`))
 	})
+
+	It("can override a field defined in an embedded struct", func() {
+		type ZeroTest struct{ Id, F1 int }
+		type OverrideZeroTest struct {
+			F1 int `sql:",notnull"`
+			ZeroTest
+		}
+
+		q := NewQuery(nil, &OverrideZeroTest{ZeroTest: ZeroTest{Id: 1}, F1: 0})
+		b, err := updateQuery{q: q}.AppendQuery(nil)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(string(b)).To(Equal(`UPDATE "override_zero_tests" AS "override_zero_test" SET "f1" = 0 WHERE "override_zero_test"."id" = 1`))
+	})
 })

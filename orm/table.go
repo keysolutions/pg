@@ -67,6 +67,9 @@ func (t *Table) checkPKs() error {
 }
 
 func (t *Table) AddField(field *Field) {
+	if _, dup := t.FieldsMap[field.SQLName]; dup {
+		return
+	}
 	t.Fields = append(t.Fields, field)
 	if field.HasFlag(PrimaryKeyFlag) {
 		t.PKs = append(t.PKs, field)
